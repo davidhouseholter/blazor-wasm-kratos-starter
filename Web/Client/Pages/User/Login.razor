@@ -1,0 +1,64 @@
+﻿@page "/login"
+
+@inject NavigationManager navigationManager
+@inject UserStateProvider authStateProvider
+@inject IOryKratosIdentityManager _identityManager
+<h1 class="h2 font-weight-normal login-title">
+    Login
+</h1>
+
+<EditForm class="form-signin" OnValidSubmit="OnSubmit" Model="loginRequest">
+    <DataAnnotationsValidator />
+    <label for="inputUsername" class="sr-only">User Name</label>
+    <InputText id="inputUsername" class="form-control" @bind-Value="loginRequest.UserName" autofocus placeholder="Username" />
+    <ValidationMessage For="@(() => loginRequest.UserName)" />
+    <label for="inputPassword" class="sr-only">Password</label>
+    <InputText type="password" id="inputPassword" class="form-control" placeholder="Password" @bind-Value="loginRequest.Password" />
+    <ValidationMessage For="@(() => loginRequest.Password)" />
+    <div class="form-check m-3">
+        <InputCheckbox id="inputRememberMe" class="form-check-input" @bind-Value="@loginRequest.RememberMe" />
+        <label class="form-check-label" for="inputRememberMe">Remember Me</label>
+    </div>
+    <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+    <label class="text-danger">@error</label>
+    <NavLink href="sign-up">
+        <h6 class="font-weight-normal text-center">Create account</h6>
+    </NavLink>
+</EditForm>
+
+
+@code {
+    KratosUiNodeInputAttributes _tokenAttributes { get; set; } = null;
+    KratosSelfServiceLoginFlow _selfServiceFlow { get; set; } = null;
+    LoginRequest loginRequest { get; set; } = new LoginRequest();
+    string error { get; set; }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        _selfServiceFlow = await  _identityManager.StartKratosSelfServiceLoginFlow();
+        KratosUiNode? tokenNode = _selfServiceFlow.Ui.Nodes.FirstOrDefault(i => i.Attributes.GetKratosUiNodeInputAttributes().Name == "csrf_token");
+        if (tokenNode != null)
+        {
+            _tokenAttributes = tokenNode.Attributes.GetKratosUiNodeInputAttributes();
+        }
+    }
+
+    async Task OnSubmit()
+    {
+        error = null;
+        try
+        {
+            loginRequest.TokenId = _tokenAttributes?.Value.ToString();
+            loginRequest.FlowId = _selfServiceFlow.Id;
+            var results = await _identityManager.CompleteKratosSelfServiceLoginFlow(loginRequest, _selfServiceFlow.Ui.Action);
+            navigationManager.NavigateTo("");
+        }
+        catch (Exception ex)
+        {
+
+            error = "Please try again."; //ex.Message;
+        }
+    }
+}

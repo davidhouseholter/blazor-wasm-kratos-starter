@@ -1,0 +1,70 @@
+﻿@page "/sign-up"
+@using KratosBlazorApp.Client.Managers
+@using Ory.Kratos.Client.Model
+@inject NavigationManager navigationManager
+@inject UserStateProvider authStateProvider
+@inject IOryKratosIdentityManager _identityManager
+<h1 class="h2 font-weight-normal login-title">
+    Register
+</h1>
+<EditForm class="form-signin" OnValidSubmit="OnSubmit" Model="registerRequest">
+    <DataAnnotationsValidator />
+    <label for="inputUsername" class="sr-only">User Name</label>
+    <InputText id="inputUsername" class="form-control" placeholder="Username" autofocus @bind-Value="@registerRequest.Traits.Email" />
+    <ValidationMessage For="@(() => registerRequest.Traits.Email)" />
+    <label for="inputPassword" class="sr-only">Password</label>
+    <InputText type="password" id="inputPassword" class="form-control" placeholder="Password" @bind-Value="@registerRequest.Password" />
+    <ValidationMessage For="@(() => registerRequest.Password)" />
+    <label for="inputPasswordConfirm" class="sr-only">Password Confirmation</label>
+    <InputText type="password" id="inputPasswordConfirm" class="form-control" placeholder="Password Confirmation" @bind-Value="@registerRequest.PasswordConfirm" />
+    <ValidationMessage For="@(() => registerRequest.PasswordConfirm)" />
+
+    <label for="inputUsername" class="sr-only">First Name</label>
+    <InputText id="inputUsername" class="form-control" placeholder="First Name" autofocus @bind-Value="@registerRequest.Traits.Name.First" />
+    <ValidationMessage For="@(() => registerRequest.Traits.Email)" />
+
+    <label for="inputUsername" class="sr-only">Last Name</label>
+    <InputText id="inputUsername" class="form-control" placeholder="Last Name" autofocus @bind-Value="@registerRequest.Traits.Name.Last" />
+    <ValidationMessage For="@(() => registerRequest.Traits.Email)" />
+
+    <button class="btn btn-lg btn-primary btn-block" type="submit">Create account</button>
+    <label class="text-danger">@error</label>
+    <NavLink href="login">
+        <h6 class="font-weight-normal text-center">Already have an account? Click here to login</h6>
+    </NavLink>
+</EditForm>
+@functions {
+    RegisterRequest registerRequest { get; set; } = new RegisterRequest();
+    string error { get; set; }
+    KratosUiNodeInputAttributes _tokenAttributes { get; set; } = null;
+    KratosSelfServiceRegistrationFlow _selfServiceFlow { get; set; } = null;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        _selfServiceFlow = await _identityManager.GetKratosSelfServiceRegistrationFlow();
+        KratosUiNode? tokenNode = _selfServiceFlow.Ui.Nodes.FirstOrDefault(i => i.Attributes.GetKratosUiNodeInputAttributes().Name == "csrf_token");
+        if (tokenNode != null)
+        {
+            _tokenAttributes = tokenNode.Attributes.GetKratosUiNodeInputAttributes();
+        }
+    }
+
+    
+    async Task OnSubmit()
+    {
+        error = null;
+        try
+        {
+            registerRequest.TokenId = _tokenAttributes?.Value.ToString();
+
+            var res = await _identityManager.CompleteKratosSelfServiceRegistrationFlow(registerRequest, _selfServiceFlow.Ui.Action);
+            navigationManager.NavigateTo("");
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+    }
+}

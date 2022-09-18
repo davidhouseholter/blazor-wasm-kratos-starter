@@ -1,0 +1,16 @@
+version: '3.7'
+
+services:
+  
+  kratosblazorapp.server:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=https://+:443;http://+:80
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=1234
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/root/.aspnet/https/Docker.KratosBlazorApp.Server.pfx
+    ports:
+      - "44322:80"
+      - "44323:443"
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
+      - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro

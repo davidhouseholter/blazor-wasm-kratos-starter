@@ -1,0 +1,66 @@
+﻿@inherits LayoutComponentBase
+@inject NavigationManager navigationManager;
+@inject IOryKratosIdentityManager _identityManager
+@inject UserStateProvider _userStateProvider
+@code {
+    private async void OnLogout()
+    {
+        await _identityManager.Logout();
+        navigationManager.NavigateTo("/login");
+    }
+}
+<div class="page">
+    <div class="sidebar">
+      @if(_userStateProvider.IsAuthenticated) {
+            <NavMenu />
+           }  
+    </div>
+
+    <main>
+        <div class="top-row px-4">
+           @if(_userStateProvider.IsAuthenticated) {
+                <a @onclick="() => OnLogout() ">Logout</a>
+           }
+        </div>
+
+        <article class="content px-4">
+            @Body
+        </article>
+    </main>
+</div>
+
+
+@*
+@using KratosBlazorApp.Shared.Providers
+@inherits LayoutComponentBase
+@inject NavigationManager navigationManager
+@inject UserStateProvider authStateProvider
+<div class="sidebar">
+    <NavMenu />
+</div>
+<div class="main">
+    <div class="top-row">
+        <button type="button" class="btn btn-link ml-md-auto" @onclick="@LogoutClick">Logout</button>
+    </div>
+    <div class="content px-4">
+        @Body
+    </div>
+</div>
+@functions {
+
+    [CascadingParameter]
+    Task<AuthenticationState> AuthenticationState { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!(await AuthenticationState).User.Identity.IsAuthenticated)
+        {
+            navigationManager.NavigateTo("/login");
+        }
+    }
+    async Task LogoutClick()
+    {
+        await authStateProvider.Logout();
+        navigationManager.NavigateTo("/login");
+    }
+}*@

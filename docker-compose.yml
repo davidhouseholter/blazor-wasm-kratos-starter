@@ -1,0 +1,49 @@
+version: '3.7'
+
+services:
+  kratosblazorapp.server:
+    image: ${DOCKER_REGISTRY-}kratosblazorappserver
+    build:
+      context: .
+      dockerfile: Web/Server/Dockerfile
+  
+  kratos-migrate:
+    image: oryd/kratos:v0.10.1
+    #depends_on:
+    #- mysql
+    environment:
+      DSN: <connection_string>
+    volumes:
+      - type: bind
+        source: ./kratos/contrib/quickstart/kratos/email-password
+        target: /etc/config/kratos
+
+    command: -c /etc/config/kratos/kratos.yml migrate sql -e --yes
+    restart: on-failure
+
+  kratos:
+    depends_on:
+      - kratos-migrate
+    image: oryd/kratos:v0.10.1
+    ports:
+      - '4433:4433' # public
+      - '4434:4434' # admin
+    restart: unless-stopped
+    environment:
+       DSN: <connection_string>
+       LOG_LEVEL: trace
+       SERVE_PUBLIC_TLS_CERT_BASE64: |- 
+        <dev_cert_cert_base64>
+       SERVE_PUBLIC_TLS_KEY_BASE64: |-
+        <dev_cert_key_base64>
+    command: serve -c /etc/config/kratos/kratos.yml --watch-courier
+    volumes:
+      - type: bind
+        source: ./kratos/contrib/quickstart/kratos/email-password
+        target: /etc/config/kratos
+
+  mailhog:
+    image: mailhog/mailhog:latest
+    ports:
+      - 1025:1025
+      - 8025:8025

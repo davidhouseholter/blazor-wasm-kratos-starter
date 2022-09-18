@@ -1,0 +1,99 @@
+version: v0.10.1
+
+dsn: memory
+
+serve:
+  public:
+    base_url: https://localhost:4433/
+    cors:
+      enabled: true
+      allowed_origins:
+        - https://localhost:44323
+      allowed_methods:
+        - POST
+        - GET
+        - PUT
+        - PATCH
+        - DELETE
+      allowed_headers:
+        - Authorization
+        - Cookie
+        - Content-Type
+      exposed_headers:
+        - Content-Type
+        - Set-Cookie
+  admin:
+    base_url: http://kratos:4434/
+
+selfservice:
+  default_browser_return_url: https://localhost:44323/
+  allowed_return_urls:
+    - https://localhost:44323
+
+  methods:
+    password:
+      enabled: true
+
+  flows:
+    error:
+      ui_url: https://localhost:44323/error
+
+    settings:
+      ui_url: https://localhost:44323/settings
+      privileged_session_max_age: 15m
+
+    recovery:
+      enabled: true
+      ui_url: https://localhost:44323/recovery
+
+    verification:
+      enabled: true
+      ui_url: https://localhost:44323/verification
+      after:
+        default_browser_return_url: https://localhost:44323/
+
+    logout:
+      after:
+        default_browser_return_url: https://localhost:44323/login
+
+    login:
+      ui_url: https://localhost:44323/login
+      lifespan: 10m
+
+    registration:
+      lifespan: 10m
+      ui_url: https://localhost:44323/sign-up
+      after:
+        password:
+          hooks:
+            -
+              hook: session
+
+log:
+  level: debug
+  format: text
+  leak_sensitive_values: true
+
+secrets:
+  cookie:
+    - PLEASE-CHANGE-ME-I-AM-VERY-INSECURE
+  cipher:
+    - 32-LONG-SECRET-NOT-SECURE-AT-ALL
+
+ciphers:
+  algorithm: xchacha20-poly1305
+
+hashers:
+  algorithm: bcrypt
+  bcrypt:
+    cost: 8
+
+identity:
+  default_schema_id: default
+  schemas:
+    - id: default
+      url: file:///etc/config/kratos/identity.schema.json
+
+courier:
+  smtp:
+    connection_uri: smtps://test:test@mailslurper:1025/?skip_ssl_verify=true

@@ -1,0 +1,55 @@
+﻿@implements IDisposable
+@inject NavigationManager _navigationManager
+@inject UserStateProvider _userStateProvider
+
+@inject IUserManager _userManager
+@inject IConfiguration _configuration
+
+@ChildContent
+
+@code {
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    public bool hasRunInit;
+
+    protected override void OnParametersSet()
+    {
+      
+    }
+    protected override async Task OnInitializedAsync()
+    {
+
+        _userStateProvider.AuthenticationStateChanged += this.OnAuthenticationStateChanged;
+        var user = (await _userStateProvider.GetAuthenticationStateAsync()).User;
+        if (user.Identity.IsAuthenticated) // && !_userState.IsInitialized)
+        {
+            hasRunInit = true;
+            await _userManager.InitializeAsync(true);
+            _userStateProvider.Login();
+        }
+    }
+
+    void IDisposable.Dispose()
+    {
+        _userStateProvider.AuthenticationStateChanged -= this.OnAuthenticationStateChanged;
+    }
+
+    private async void OnAuthenticationStateChanged(Task<AuthenticationState> task)
+    {
+        var user = (await task).User;
+        if (user.Identity.IsAuthenticated) // && !_userState.IsInitialized)
+        {
+            if (!hasRunInit)
+            {
+                hasRunInit = true;
+
+                await _userManager.InitializeAsync(true);
+            }
+        }
+        else
+        {
+            await _userManager.InitializeAsync(false);
+        }
+    }
+}
