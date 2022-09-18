@@ -26,7 +26,7 @@ This project aims to be a simple example of using Ory Kratos as the Identity Ser
 
 ### Single Page Application
 
-This template was built as a single page tepmlate, the user is redirected to the login page unless they are authenticated with the server via OryKratos Middleware.
+This template was built as a single page template, the user is redirected to the login page unless they are authenticated with the server via OryKratos Middleware.
 
 # Usage
 
