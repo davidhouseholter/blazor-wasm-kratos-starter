@@ -1,8 +1,3 @@
-https://localhost:4433/
-
--- export dev-cert: https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-dev-certs
------ Setup CORS!s
-
 <h1 >A starter for Blazor WebAssembly .NET 6 and the Ory Kratos Identity Server</h1>
 
 This project aims to be a simple example of using Ory Kratos as the Identity Server for a Blazor WebAssembly Project.
